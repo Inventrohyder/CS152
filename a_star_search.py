@@ -1,5 +1,5 @@
 from puzzle_node import PuzzleNode
-from heuristics import h1, h2, h3
+from heuristics import h1, h2, h3, heuristics
 ### Original was
 # A* Tree Search Example for Robot Navigation
 # By R. Shekhar
@@ -22,7 +22,7 @@ def solvePuzzle(state, heuristic):
     # Define the start
     start = PuzzleNode(state)
 
-    step_counter = 0
+    optimal_path_length = 0
     exp = 0
     max_frontier = 0
     optimal_path = None
@@ -30,7 +30,7 @@ def solvePuzzle(state, heuristic):
 
     if not start.is_valid_puzzle():
         err = -1
-        return step_counter, exp, max_frontier, optimal_path, err
+        return optimal_path_length, exp, max_frontier, optimal_path, err
 
     # Define the heuristic functions here
     def f(node, heuristic=heuristic):
@@ -55,8 +55,6 @@ def solvePuzzle(state, heuristic):
     max_frontier += 1
 
     # Begin A* Tree Search
-    step_counter = 0
-
     while not frontier.empty():
         # Take the next available node from the priority queue
         cur_node: PuzzleNode = frontier.get()
@@ -73,7 +71,7 @@ def solvePuzzle(state, heuristic):
         for move in moves:
             next_node = cur_node.get_next_node(move)
 
-            step_counter += 1 # Each valid child node generated is another step
+            exp += 1 # Each valid child node generated is another step
             g_val = cur_node.g_val + 1 # Tentative cost value for child
 
             # If the child node is already in the cost database (i.e. explored) then see if we need to update the path.
@@ -90,19 +88,17 @@ def solvePuzzle(state, heuristic):
             next_node.parent = cur_node  # Create new node for child
             frontier.put(next_node)
             max_frontier += 1
-            exp += 1
             costs_db[str(next_node)] = next_node  # Mark the node as explored
 
     # Reconstruct the optimal path
-    optimal_path = [str(cur_node)]
+    optimal_path = [cur_node.state]
     while cur_node.parent:
-        optimal_path.append(str(cur_node.parent))
+        optimal_path.append((cur_node.parent).state)
         cur_node = cur_node.parent
     optimal_path = optimal_path[::-1]
-    print(f"A* search completed in {step_counter} steps\n")
+    print(f"A* search completed in {exp} steps\n")
     print(f"A* path length: {len(optimal_path)-1} steps\n")
     print(f"A* path to goal:\n")
     print(optimal_path)
-    return step_counter, exp, max_frontier, optimal_path, err
-
-print(solvePuzzle([[2,3,7],[1,8,0],[6,5,4]], lambda state: 0))
+    optimal_path_length = len(optimal_path)-1
+    return optimal_path_length, exp, max_frontier, optimal_path, err
