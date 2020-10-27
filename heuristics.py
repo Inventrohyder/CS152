@@ -14,7 +14,9 @@ def h1(state):
         -h: the number of misplaced tiles
     """
     state = PuzzleNode(state)
-    return sum([1 for i, x in enumerate(state.puzzle.flatten()) if i != x and x != 0])
+    return sum(
+        [1 for i, x in enumerate(state.puzzle.flatten()) if i != x and x != 0]
+    )
 
 # Manhattan distance heuristic
 def h2(state):
@@ -26,17 +28,11 @@ def h2(state):
         -h: the Manhattan distance from the solved configuration
     """
     state = PuzzleNode(state)
-    correct_puzzle = np.arange(
-        len(state.puzzle.flatten())  # from 0 to n**2
-        ).reshape(
-            len(state.puzzle[0]),  # n
-            len(state.puzzle[0])   # n
-        )
     total = 0
     for x in range(3):
         for y in range(3):
-            if  correct_puzzle[x][y] != 0:
-                position = np.where(state.puzzle == correct_puzzle[x][y])
+            if  state.goal[x][y] != 0:
+                position = np.where(state.puzzle == state.goal[x][y])
                 total += abs(position[0] - x) + abs(position[1] - y)
     return int(total)
     
