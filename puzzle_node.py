@@ -30,12 +30,14 @@ class PuzzleNode:
         self.f_val = f_val
         self.g_val = g_val
         self.parent = parent
-        # n = len(puzzle[0])
-        # unique_numbers = set(puzzle.flatten())
-        # if len(unique_numbers) != n ** 2:
-        #     return - 1
 
-    def empty_slot(self):
+    def is_valid_puzzle(self) -> bool:
+        unique_numbers = set(self.puzzle.flatten())
+        if len(unique_numbers) != self.n ** 2:
+            return False
+        return True
+
+    def empty_slot(self) -> np.array:
         return np.where(self.puzzle == 0)
 
     def is_valid_position(self, position: tuple) -> bool:

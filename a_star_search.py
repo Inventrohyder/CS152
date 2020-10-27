@@ -22,9 +22,19 @@ def solvePuzzle(state, heuristic):
     # Define the start
     start = PuzzleNode(state)
 
+    step_counter = 0
+    exp = 0
+    max_frontier = 0
+    optimal_path = None
+    err = 0
+
+    if not start.is_valid_puzzle():
+        err = -1
+        return step_counter, exp, max_frontier, optimal_path, err
+
     # Define the heuristic functions here
     def f(node, heuristic=heuristic):
-   	    return h2(node.state) 
+   	    return heuristic(node.state) 
 
     cur_heuristic = f
 
@@ -42,6 +52,7 @@ def solvePuzzle(state, heuristic):
 
     frontier = PriorityQueue()
     frontier.put(start_node)
+    max_frontier += 1
 
     # Begin A* Tree Search
     step_counter = 0
@@ -49,6 +60,7 @@ def solvePuzzle(state, heuristic):
     while not frontier.empty():
         # Take the next available node from the priority queue
         cur_node: PuzzleNode = frontier.get()
+        max_frontier -= 1
 
         if cur_node.pruned:
             continue # Skip if this node has been marked for removal
@@ -77,6 +89,8 @@ def solvePuzzle(state, heuristic):
             next_node.g_val = g_val
             next_node.parent = cur_node  # Create new node for child
             frontier.put(next_node)
+            max_frontier += 1
+            exp += 1
             costs_db[str(next_node)] = next_node  # Mark the node as explored
 
     # Reconstruct the optimal path
@@ -89,5 +103,6 @@ def solvePuzzle(state, heuristic):
     print(f"A* path length: {len(optimal_path)-1} steps\n")
     print(f"A* path to goal:\n")
     print(optimal_path)
+    return step_counter, exp, max_frontier, optimal_path, err
 
-solvePuzzle([[2,3,7],[1,8,0],[6,5,4]], lambda state: 0)
+print(solvePuzzle([[2,3,7],[1,8,0],[6,5,4]], lambda state: 0))
