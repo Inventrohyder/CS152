@@ -31,6 +31,9 @@ class PuzzleNode:
         return np.where(self.puzzle == 0)
 
     def is_valid_position(self, position: tuple) -> bool:
+        empty = self.empty_slot()
+        if position[0] == empty[0] and position[1] == empty[1]:
+            return False
         if position[0] < self.n and position[0] >= 0:
             if position[1] < self.n and position[1] >= 0:
                 return True
@@ -56,6 +59,15 @@ class PuzzleNode:
             if self.is_valid_position(position):
                 valid.append(position)
         return valid
+
+    def get_next_node(self, position: tuple):
+        if self.is_valid_position(position):
+            empty = self.empty_slot()
+            puzzle = self.puzzle.copy()
+            puzzle[empty], puzzle[position] = puzzle[position], puzzle[empty]
+            return PuzzleNode(puzzle=puzzle)
+        raise ValueError("Invalid position")
+
 
     def is_goal(self):
         return np.all(self.puzzle == self.goal)
