@@ -13,8 +13,12 @@ class PuzzleNode:
     Class PuzzleNode: Provides a structure for performing A* search for the n^2-1 puzzle
     """
 
-    def __init__(self, puzzle: List[List[int]]):
+    def __init__(self,
+                puzzle: List[List[int]],
+                f_val: int = 0, g_val: int = 0,
+                parent = None):
         self.puzzle = np.array(puzzle)
+        self.state = self.puzzle.tolist()
         self.n = len(puzzle[0])
         self.goal = np.arange(
             len(self.puzzle.flatten())
@@ -22,6 +26,10 @@ class PuzzleNode:
             self.n,
             self.n
         )
+        self.pruned = False
+        self.f_val = f_val
+        self.g_val = g_val
+        self.parent = parent
         # n = len(puzzle[0])
         # unique_numbers = set(puzzle.flatten())
         # if len(unique_numbers) != n ** 2:
@@ -71,6 +79,9 @@ class PuzzleNode:
 
     def is_goal(self):
         return np.all(self.puzzle == self.goal)
+
+    def __lt__(self, other):
+        return self.f_val < other.f_val
 
     def __str__(self):
         return self.puzzle.__str__()

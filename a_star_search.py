@@ -1,122 +1,93 @@
+from puzzle_node import PuzzleNode
+from heuristics import h1, h2, h3
+### Original was
 # A* Tree Search Example for Robot Navigation
-# R. Shekhar
-# August 10, 2017
+# By R. Shekhar
+# On August 10, 2017
 
-# Define the start and goal nodes
-start = (3,2)
-goal = (2,5)
+def solvePuzzle(state, heuristic):
+    """This function should solve the n**2-1 puzzle for any n > 2 (although it may take too long for n > 4)).
+    Inputs:
+        -state: The initial state of the puzzle as a list of lists
+        -heuristic: a handle to a heuristic function.  Will be one of those defined in Question 2.
+    Outputs:
+        -steps: The number of steps to optimally solve the puzzle (excluding the initial state)
+        -exp: The number of nodes expanded to reach the solution
+        -max_frontier: The maximum size of the frontier over the whole search
+        -opt_path: The optimal path as a list of list of lists.  That is, opt_path[:,:,i] should give a list of lists
+                    that represents the state of the board at the ith step of the solution.
+        -err: An error code.  If state is not of the appropriate size and dimension, return -1.  For the extention task,
+          if the state is not solvable, then return -2
+    """
+    # Define the start
+    start = PuzzleNode(state)
 
-# Define the obstacle coordinates
-obstacles = set([(2,2),(6,2),(1,3),(2,4),(3,4),(4,4),(5,4),(6,4)])
+    # Define the heuristic functions here
+    def f(node, heuristic=heuristic):
+   	    return h2(node.state) 
 
-# Define the heuristic functions here
-
-# A sample heuristic (makes A* behave like uniform-cost search)
-def hnull(coord): return 0
-
-# [Insert  your own heuristic functions here, defining new functions like hnull above.]
-
-#def h1(node, goal_node=goal):
-  #  a = goal[0]-node[0]
- #   b = goal[1]-node[1]
-  #  c = (a**2 + b**2)**0.5
- #   return c
-
-def h2(node, goal_node=goal):
-    x_axis = goal[0] - node[0]
-    y_axis = goal[1] - node[1]
-    man_distance = abs(x_axis) + abs(y_axis)
-    return man_distance
-    
-def h1(node, goal_node=goal):
-    x_axis = goal[0] - node[0]
-    y_axis = goal[1] - node[1]
-    distance = (x_axis**2 + y_axis**2)**0.5
-    return distance
-    
-def f(node, heur=h2, goal_node=goal):
-   	return h2(node) + h2(node, goal_node=start)
-
-#Current heuristic function. Change the handle cur_heur to point to the heuristic function you want to test
-########################## Adjust this ##########################
-cur_heur = f
-##########################  END ADJUST ##########################
+    cur_heuristic = f
 
 
-# Define the data structure for A* search node
-class AStarNode:
-    # Class constructor
-    def __init__(self,coord,fval,gval,parent=None):
-        self.coord = coord
-        self.fval = fval
-        self.gval = gval
-        self.parent = parent
-        self.pruned = False
+    # Start node
+    start_node = start
+    start_node.f_val = cur_heuristic(start)
+    start_node.g_val = 0
 
-    # Comparison function based on f cost
-    def __lt__(self,other):
-        return self.fval < other.fval
+    # Dictionary with current cost to reach all visited nodes
+    costs_db = {str(start):start_node}
 
-    # Convert to string
-    def __str__(self):
-        return str(self.coord)
+    # Frontier, stored as a Priority Queue to maintain ordering
+    from queue import PriorityQueue
 
-# Start node
-start_node = AStarNode(start,cur_heur(start),0)
+    frontier = PriorityQueue()
+    frontier.put(start_node)
 
-# Dictionary with current cost to reach all visited nodes
-costs_db = {start:start_node}
+    # Begin A* Tree Search
+    step_counter = 0
 
-# Frontier, stored as a Priority Queue to maintain ordering
-from queue import PriorityQueue
+    while not frontier.empty():
+        # Take the next available node from the priority queue
+        cur_node: PuzzleNode = frontier.get()
 
-frontier = PriorityQueue()
-frontier.put(start_node)
+        if cur_node.pruned:
+            continue # Skip if this node has been marked for removal
 
-# next moves
-moves_orth = ((1,0),(0,1),(-1,0),(0,-1))
+        # Check if we are at the goal
+        if cur_node.is_goal() : break
 
-# Begin A* Tree Search
-step_counter = 0
+        # Get the next positions
+        moves = cur_node.movable_tiles()
+        for move in moves:
+            next_node = cur_node.get_next_node(move)
 
-while not frontier.empty():
-    # Take the next available node from the priority queue
-    cur_node = frontier.get()
-
-    if cur_node.pruned:
-        continue # Skip if this node has been marked for removal
-
-    # Check if we are at the goal
-    if cur_node.coord == goal: break
-
-    # Expand the node in the orthogonal and diagonal directions
-    for m in moves_orth:
-        next_coord = tuple(sum(x) for x in zip(cur_node.coord,m))
-
-        # Can only move in this direction if there is no obstacle there
-        if next_coord not in obstacles:
             step_counter += 1 # Each valid child node generated is another step
-            gval = cur_node.gval + 1 # Tentative cost value for child
+            g_val = cur_node.g_val + 1 # Tentative cost value for child
 
-            # If the child node is already in the cost database (i.e. explored) then see if we need to update the path.  In a graph search, we wouldn't even bother exploring it again.
-            if next_coord in costs_db:
-                if costs_db[next_coord].gval > gval:
-                    costs_db[next_coord].pruned = True # Mark existing value for deletion from frontier
+            # If the child node is already in the cost database (i.e. explored) then see if we need to update the path.
+            # In a graph search, we wouldn't even bother exploring it again.
+            if str(next_node) in costs_db:
+                if costs_db[str(next_node)].g_val > g_val:
+                    costs_db[str(next_node)].pruned = True # Mark existing value for deletion from frontier
                 else:
                     continue # ignore this child, since a better path has already been found previously.
 
-            hval = cur_heur(next_coord) # Heuristic cost from next node to goal
-            next_node = AStarNode(next_coord,gval+hval,gval,cur_node) # Create new node for child
+            h_val = cur_heuristic(next_node)  # Heuristic cost from next node to goal
+            next_node.f_val = g_val + h_val
+            next_node.g_val = g_val
+            next_node.parent = cur_node  # Create new node for child
             frontier.put(next_node)
-            costs_db[next_coord] = next_node #Mark the node as explored
+            costs_db[str(next_node)] = next_node  # Mark the node as explored
 
-# Reconstruct the optimal path
-optimal_path = [cur_node.coord]
-while cur_node.parent:
-    optimal_path.append((cur_node.parent).coord)
-    cur_node = cur_node.parent
-optimal_path = optimal_path[::-1]
-print(f"A* search completed in {step_counter} steps\n")
-print(f"A* path length: {len(optimal_path)-1} steps\n")
-print(f"A* path to goal:\n")
-print(optimal_path)
+    # Reconstruct the optimal path
+    optimal_path = [str(cur_node)]
+    while cur_node.parent:
+        optimal_path.append(str(cur_node.parent))
+        cur_node = cur_node.parent
+    optimal_path = optimal_path[::-1]
+    print(f"A* search completed in {step_counter} steps\n")
+    print(f"A* path length: {len(optimal_path)-1} steps\n")
+    print(f"A* path to goal:\n")
+    print(optimal_path)
+
+solvePuzzle([[2,3,7],[1,8,0],[6,5,4]], lambda state: 0)
