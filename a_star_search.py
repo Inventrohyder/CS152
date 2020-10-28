@@ -2,16 +2,32 @@ from puzzle_node import PuzzleNode
 from heuristics import h1, h2, h3, heuristics
 from queue import PriorityQueue
 
+def get_error_code(node: PuzzleNode) -> int:
+    """
+    Checks if the puzzle has an error
+
+    :param node: the puzzle to check
+    :returns -1 if it is an invalid puzzle,
+        -2 if it is not solvable
+        0 if there is no error
+    """
+    if not node.is_valid_puzzle():
+        return - 1
+    if not node.is_solvable():
+        return - 2
+    return 0
+
+
 ### Original was
 # A* Tree Search Example for Robot Navigation
 # By R. Shekhar
 # On August 10, 2017
-
-def solvePuzzle(state, heuristic):
+def solvePuzzle(state, heuristic, check_solvability: bool = True):
     """This function should solve the n**2-1 puzzle for any n > 2 (although it may take too long for n > 4)).
     Inputs:
         -state: The initial state of the puzzle as a list of lists
         -heuristic: a handle to a heuristic function.  Will be one of those defined in Question 2.
+        -check_solvability: should we check the solvability of the state
     Outputs:
         -steps: The number of steps to optimally solve the puzzle (excluding the initial state)
         -exp: The number of nodes expanded to reach the solution
@@ -28,10 +44,9 @@ def solvePuzzle(state, heuristic):
     exp = 0
     max_frontier = 0
     optimal_path = None
-    err = 0
+    err = get_error_code(start)
 
-    if not start.is_valid_puzzle():
-        err = -1
+    if err != 0 and check_solvability:
         return optimal_path_length, exp, max_frontier, optimal_path, err
 
     # Define the heuristic functions here
@@ -98,3 +113,11 @@ def solvePuzzle(state, heuristic):
     optimal_path = optimal_path[::-1]
     optimal_path_length = len(optimal_path)-1
     return optimal_path_length, exp, max_frontier, optimal_path, err
+
+working_initial_state_15_puzzle = [[1,2,6,3],[0,9,5,7],[4,13,10,11],[8,12,14,15]]
+steps_mt, expansions_mt, _, _, _ = solvePuzzle(working_initial_state_15_puzzle, heuristics[0])
+steps_man, expansions_man, _, _, _ = solvePuzzle(working_initial_state_15_puzzle, heuristics[1])
+# Test whether the number of optimal steps is correct and the same
+assert(steps_mt == steps_man == 9)
+# Test whether or not the manhattan distance dominates the misplaced tiles heuristic in every case
+assert(expansions_mt >= expansions_man)
