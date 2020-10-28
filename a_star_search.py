@@ -115,6 +115,7 @@ def solvePuzzle(state, heuristic,
             max_frontier += 1
             costs_db[str(next_node)] = next_node  # Mark the node as explored
 
+    # Get the existing patterns
     patterns = {}
     try:
         with open("pattern_db.json", "r") as patterns_file:

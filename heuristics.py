@@ -86,7 +86,8 @@ def h3(state, pattern_db_filename = "pattern_db.json"):
     
     state_key = str(state)
     if state_key not in patterns:
-        # Use the manhattan heuristic
+        # Use the manhattan heuristic if it doesn't exist in
+        # the pattern database
         return h2(state)
     
     return patterns[state_key]

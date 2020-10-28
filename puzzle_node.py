@@ -4,33 +4,52 @@ from typing import List
 class PuzzleNode:
     """
     Class PuzzleNode: Provides a structure for performing A* search for the n^2-1 puzzle
+
+    :param puzzle: The puzzle as a numpy array
+    :param state: The puzzle as a list of lists
+    :param n: the width of the puzzle
+    :param goal: The goal state as a numpy array
+    :param pruned: checks if the node has been pruned
+    :param f_val: the cost of the node
+    :param g_val: the heuristic value of the node
+    :param parent: the parent node
     """
 
     def __init__(self,
-                 puzzle: List[List[int]],
+                 state: List[List[int]],
                  f_val: int = 0, g_val: int = 0,
                  parent=None):
-        self.puzzle = np.array(puzzle)
-        self.state = self.puzzle.tolist()
-        self.n = len(puzzle[0])
-        self.goal = np.arange(
+        self.puzzle: np.ndarray = np.array(state)
+        self.state: List[List[int]] = self.puzzle.tolist()
+        self.n: int = len(state[0])
+        self.goal: np.ndarray = np.arange(
             len(self.puzzle.flatten())
         ).reshape(
             self.n,
             self.n
         )
-        self.pruned = False
-        self.f_val = f_val
-        self.g_val = g_val
+        self.pruned: bool = False
+        self.f_val: int = f_val
+        self.g_val: int = g_val
         self.parent = parent
 
     def is_valid_puzzle(self) -> bool:
+        """
+        Checks if this is a valid puzzle
+
+        :returns True if it is a valid puzzle, False otherwise
+        """
         unique_numbers = set(self.puzzle.flatten())
         if len(unique_numbers) != self.n ** 2:
             return False
         return True
 
     def empty_slot(self) -> np.array:
+        """
+        Gets the position of the blank space
+
+        :returns the position of the blank spaces
+        """
         return np.where(self.puzzle == 0)
 
     def inversions(self) -> int:
@@ -77,15 +96,29 @@ class PuzzleNode:
         )
 
     def is_valid_position(self, position: tuple) -> bool:
+        """
+        Checks if the given position is a valid tile in the puzzle
+
+        :param position: a tuple giving the x, y coordinate of the tile to check
+        :returns True if it is a tile position is valid in the puzzle and not blank,
+            False otherwise
+        """
         empty = self.empty_slot()
         if position[0] == empty[0] and position[1] == empty[1]:
+            # If the position is the blank piece
             return False
         if position[0] < self.n and position[0] >= 0:
             if position[1] < self.n and position[1] >= 0:
+                # If the position is within the bounds of the puzzle
                 return True
         return False
 
     def movable_tiles(self) -> List[tuple]:
+        """
+        Identifies the tiles that can switch with the blank space
+
+        :returns the positions of tiles that can move
+        """
         empty = self.empty_slot()
         valid = []
         next_positions = list()
@@ -107,11 +140,17 @@ class PuzzleNode:
         return valid
 
     def get_next_node(self, position: tuple):
+        """
+        Swaps the blank position with the tile at the given position
+
+        :param position: the tile's position that switches with the blank
+        :returns a new node with the new position
+        """
         if self.is_valid_position(position):
             empty = self.empty_slot()
             puzzle = self.puzzle.copy()
             puzzle[empty], puzzle[position] = puzzle[position], puzzle[empty]
-            return PuzzleNode(puzzle=puzzle)
+            return PuzzleNode(state=puzzle)
         raise ValueError("Invalid position")
 
     def is_goal(self):
