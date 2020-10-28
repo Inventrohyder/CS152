@@ -1,6 +1,8 @@
 from puzzle_node import PuzzleNode
 from queue import PriorityQueue
 from typing import List
+from heuristics import heuristics
+import json
 
 
 def get_error_code(node: PuzzleNode) -> int:
@@ -23,12 +25,16 @@ def get_error_code(node: PuzzleNode) -> int:
 # A* Tree Search Example for Robot Navigation
 # By R. Shekhar
 # On August 10, 2017
-def solvePuzzle(state, heuristic, check_solvability: bool = True):
+def solvePuzzle(state, heuristic,
+                check_solvability: bool = True,
+                pattern_db_filename: str = "pattern_db.json"
+                ):
     """This function should solve the n**2-1 puzzle for any n > 2 (although it may take too long for n > 4)).
     Inputs:
         -state: The initial state of the puzzle as a list of lists
         -heuristic: a handle to a heuristic function.  Will be one of those defined in Question 2.
         -check_solvability: should we check the solvability of the state
+        -pattern_db_filename: the file name that stores known patterns
     Outputs:
         -steps: The number of steps to optimally solve the puzzle (excluding the initial state)
         -exp: The number of nodes expanded to reach the solution
@@ -109,11 +115,24 @@ def solvePuzzle(state, heuristic, check_solvability: bool = True):
             max_frontier += 1
             costs_db[str(next_node)] = next_node  # Mark the node as explored
 
+    patterns = {}
+    try:
+        with open("pattern_db.json", "r") as patterns_file:
+            patterns = json.load(patterns_file)
+    except FileNotFoundError:
+        pass
+
     # Reconstruct the optimal path
+    # and save to the pattern database
     optimal_path = [cur_node.state]
-    while cur_node.parent:
-        optimal_path.append((cur_node.parent).state)
-        cur_node = cur_node.parent
+    with open("pattern_db.json", "w") as patterns_file:
+        counter = 0
+        while cur_node.parent:
+            patterns[str(cur_node.state)] = counter
+            optimal_path.append((cur_node.parent).state)
+            cur_node = cur_node.parent
+            counter += 1
+        json.dump(patterns, patterns_file, indent=4)
     optimal_path = optimal_path[::-1]
-    optimal_path_length = len(optimal_path)-1
+    optimal_path_length = len(optimal_path) - 1
     return optimal_path_length, exp, max_frontier, optimal_path, err

@@ -1,6 +1,9 @@
 import numpy as np
 from typing import List
 from puzzle_node import PuzzleNode
+import json
+import os
+
 
 def cache(func):
     """
@@ -9,6 +12,7 @@ def cache(func):
     :param func: a heuristic function
     """
     memory = {}
+
     def helper(state: List[List[int]]):
         func_key = func.__name__
         if func_key not in memory:
@@ -50,14 +54,14 @@ def h2(state):
     total = 0
     for x in range(node.n):
         for y in range(node.n):
-            if  node.goal[x][y] != 0:
+            if node.goal[x][y] != 0:
                 position = np.where(node.puzzle == node.goal[x][y])
                 total += abs(position[0] - x) + abs(position[1] - y)
     return int(total)
-    
+
+
 # Extra heuristic for the extension.  If implemented, modify the function below
-@cache
-def h3(state):
+def h3(state, pattern_db_filename = "pattern_db.json"):
     """
     This function returns a heuristic that dominates the Manhattan distance, given the board state
     Input:
@@ -65,7 +69,27 @@ def h3(state):
     Output:
         -h: the Heuristic distance of the state from its solved configuration
     """
-    return 0
+    # The pattern database is a JSON file that stores the states explored as
+    # follows:
+    #   {
+    #       state: steps to goal,
+    #       [[0, 1, 2], ...]: 0,
+    #       .....
+    #   }
+    if not os.path.isfile(pattern_db_filename):
+        # Create the pattern database file
+        with open(pattern_db_filename, "w") as patterns_file:
+            json.dump({}, patterns_file)
+    patterns = {}
+    with open("pattern_db.json", "r") as patterns_file:
+        patterns = json.load(patterns_file)
+    
+    state_key = str(state)
+    if state_key not in patterns:
+        # Use the manhattan heuristic
+        return h2(state)
+    
+    return patterns[state_key]
 
 # If you implement more than 3 heuristics, then add any extra heuristic functions onto the end of this list.
 heuristics = [h1, h2, h3]
