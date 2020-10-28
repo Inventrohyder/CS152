@@ -27,12 +27,12 @@ def h2(state):
     Output:
         -h: the Manhattan distance from the solved configuration
     """
-    state = PuzzleNode(state)
+    node = PuzzleNode(state)
     total = 0
-    for x in range(3):
-        for y in range(3):
-            if  state.goal[x][y] != 0:
-                position = np.where(state.puzzle == state.goal[x][y])
+    for x in range(node.n):
+        for y in range(node.n):
+            if  node.goal[x][y] != 0:
+                position = np.where(node.puzzle == node.goal[x][y])
                 total += abs(position[0] - x) + abs(position[1] - y)
     return int(total)
     

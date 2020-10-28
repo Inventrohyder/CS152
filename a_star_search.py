@@ -1,5 +1,7 @@
 from puzzle_node import PuzzleNode
 from heuristics import h1, h2, h3, heuristics
+from queue import PriorityQueue
+
 ### Original was
 # A* Tree Search Example for Robot Navigation
 # By R. Shekhar
@@ -48,8 +50,6 @@ def solvePuzzle(state, heuristic):
     costs_db = {str(start):start_node}
 
     # Frontier, stored as a Priority Queue to maintain ordering
-    from queue import PriorityQueue
-
     frontier = PriorityQueue()
     frontier.put(start_node)
     max_frontier += 1
@@ -96,9 +96,5 @@ def solvePuzzle(state, heuristic):
         optimal_path.append((cur_node.parent).state)
         cur_node = cur_node.parent
     optimal_path = optimal_path[::-1]
-    print(f"A* search completed in {exp} steps\n")
-    print(f"A* path length: {len(optimal_path)-1} steps\n")
-    print(f"A* path to goal:\n")
-    print(optimal_path)
     optimal_path_length = len(optimal_path)-1
     return optimal_path_length, exp, max_frontier, optimal_path, err
