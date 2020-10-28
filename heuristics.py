@@ -1,10 +1,28 @@
 import numpy as np
+from typing import List
 from puzzle_node import PuzzleNode
-# Add any additional code here (e.g. for the memoization extension)
 
-# YOUR CODE HERE (OPTIONAL)
+def cache(func):
+    """
+    Cache the output of a function
+
+    :param func: a heuristic function
+    """
+    memory = {}
+    def helper(state: List[List[int]]):
+        func_key = func.__name__
+        if func_key not in memory:
+            memory[func_key] = {}
+
+        state_key = str(state)
+        if state_key not in memory:
+            memory[func_key][state_key] = func(state)
+
+        return memory[func_key][state_key]
+    return helper
 
 # Misplaced tiles heuristic
+@cache
 def h1(state):
     """
     This function returns the number of misplaced tiles, given the board state
@@ -19,6 +37,7 @@ def h1(state):
     )
 
 # Manhattan distance heuristic
+@cache
 def h2(state):
     """
     This function returns the Manhattan distance from the solved state, given the board state
@@ -37,6 +56,7 @@ def h2(state):
     return int(total)
     
 # Extra heuristic for the extension.  If implemented, modify the function below
+@cache
 def h3(state):
     """
     This function returns a heuristic that dominates the Manhattan distance, given the board state

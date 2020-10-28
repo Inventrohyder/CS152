@@ -1,6 +1,7 @@
 from puzzle_node import PuzzleNode
-from heuristics import h1, h2, h3, heuristics
 from queue import PriorityQueue
+from typing import List
+
 
 def get_error_code(node: PuzzleNode) -> int:
     """
@@ -18,7 +19,7 @@ def get_error_code(node: PuzzleNode) -> int:
     return 0
 
 
-### Original was
+# Original was
 # A* Tree Search Example for Robot Navigation
 # By R. Shekhar
 # On August 10, 2017
@@ -51,10 +52,9 @@ def solvePuzzle(state, heuristic, check_solvability: bool = True):
 
     # Define the heuristic functions here
     def f(node, heuristic=heuristic):
-   	    return heuristic(node.state) 
+        return heuristic(node.state)
 
     cur_heuristic = f
-
 
     # Start node
     start_node = start
@@ -62,7 +62,7 @@ def solvePuzzle(state, heuristic, check_solvability: bool = True):
     start_node.g_val = 0
 
     # Dictionary with current cost to reach all visited nodes
-    costs_db = {str(start):start_node}
+    costs_db = {str(start): start_node}
 
     # Frontier, stored as a Priority Queue to maintain ordering
     frontier = PriorityQueue()
@@ -76,28 +76,32 @@ def solvePuzzle(state, heuristic, check_solvability: bool = True):
         max_frontier -= 1
 
         if cur_node.pruned:
-            continue # Skip if this node has been marked for removal
+            continue  # Skip if this node has been marked for removal
 
         # Check if we are at the goal
-        if cur_node.is_goal() : break
+        if cur_node.is_goal():
+            break
 
         # Get the next positions
         moves = cur_node.movable_tiles()
         for move in moves:
             next_node = cur_node.get_next_node(move)
 
-            exp += 1 # Each valid child node generated is another step
-            g_val = cur_node.g_val + 1 # Tentative cost value for child
+            exp += 1  # Each valid child node generated is another step
+            g_val = cur_node.g_val + 1  # Tentative cost value for child
 
             # If the child node is already in the cost database (i.e. explored) then see if we need to update the path.
             # In a graph search, we wouldn't even bother exploring it again.
             if str(next_node) in costs_db:
                 if costs_db[str(next_node)].g_val > g_val:
-                    costs_db[str(next_node)].pruned = True # Mark existing value for deletion from frontier
+                    # Mark existing value for deletion from frontier
+                    costs_db[str(next_node)].pruned = True
                 else:
-                    continue # ignore this child, since a better path has already been found previously.
+                    # ignore this child, since a better path has already been found previously.
+                    continue
 
-            h_val = cur_heuristic(next_node)  # Heuristic cost from next node to goal
+            # Heuristic cost from next node to goal
+            h_val = cur_heuristic(next_node)
             next_node.f_val = g_val + h_val
             next_node.g_val = g_val
             next_node.parent = cur_node  # Create new node for child
@@ -113,11 +117,3 @@ def solvePuzzle(state, heuristic, check_solvability: bool = True):
     optimal_path = optimal_path[::-1]
     optimal_path_length = len(optimal_path)-1
     return optimal_path_length, exp, max_frontier, optimal_path, err
-
-working_initial_state_15_puzzle = [[1,2,6,3],[0,9,5,7],[4,13,10,11],[8,12,14,15]]
-steps_mt, expansions_mt, _, _, _ = solvePuzzle(working_initial_state_15_puzzle, heuristics[0])
-steps_man, expansions_man, _, _, _ = solvePuzzle(working_initial_state_15_puzzle, heuristics[1])
-# Test whether the number of optimal steps is correct and the same
-assert(steps_mt == steps_man == 9)
-# Test whether or not the manhattan distance dominates the misplaced tiles heuristic in every case
-assert(expansions_mt >= expansions_man)
