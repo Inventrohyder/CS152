@@ -167,6 +167,19 @@ def DPLL_Satisfiable(
                 new_symbols.remove(P)
                 symbol_list.append(P.pure())
                 return DPLL(clauses, new_symbols, {**model, **{P.pure(): value}}, heuristic_level)
+
+            # Degree heuristic - Most common symbol first
+            symbols_lst = list(symbols)
+            P, rest = most_common_symbol(symbols, clauses, model) 
+
+            symbol_list.append(P.pure())
+            when_true = DPLL(clauses, rest, {**model, **{P.pure(): True}}, heuristic_level)
+            if when_true[0]:
+                return when_true
+
+            symbol_list.append(P.pure())
+            when_false = DPLL(clauses, rest, {**model, **{P.pure(): False}}, heuristic_level)
+            return when_false
         elif heuristic_level == 3:
             pass
         else:  # heuristic_level assumed to be 0
@@ -216,7 +229,7 @@ def find_pure_symbol(
                     symbol_signs[symbol] = literal.sign
                     pure_symbols.add(symbol)
 
-    pure_symbol =  list(sorted(pure_symbols))[0] if len(pure_symbols) > 0 else None
+    pure_symbol =  sorted(list(pure_symbols))[0] if len(pure_symbols) > 0 else None
 
     if pure_symbol is None:
         return None, None
@@ -231,9 +244,17 @@ def find_unit_clause(
 
     current_clauses: List[Set[Literal]] = simplify_clauses(clauses, model)
 
+    unit_clauses: Set[Literal] = set()
+
     for clause in current_clauses:
         if len(clause) == 1:
             literal = clause.pop()
-            return literal, literal.sign
+            unit_clauses.add(literal)
+            # return literal, literal.sign
     
-    return None, None
+    unit_clause =  sorted(list(unit_clauses))[0] if len(unit_clauses) > 0 else None
+
+    if unit_clause is None:
+        return None, None
+    
+    return unit_clause, unit_clause.sign
