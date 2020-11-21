@@ -65,6 +65,32 @@ def evaluate_clauses(
             return False
     return None
 
+def most_common_symbol(
+    symbols: Set[Literal], 
+    clauses: List[Set[Literal]],
+    model:Dict[Literal, bool]
+    ) -> Tuple[Literal, Set[Literal]]:
+
+    current_clauses: List[Set[Literal]] = simplify_clauses(clauses, model)
+
+    counts = {}
+    highest: Literal = None
+    for clause in current_clauses:
+        for literal in clause:
+            counts[literal] = counts.get(literal, 0)
+            if highest is None:
+                highest = literal
+            else:
+                if counts[literal] > counts[highest]:
+                    highest = literal
+                elif counts[literal] == counts[highest]:
+                    highest = literal if literal.name < highest.name else highest
+                else:
+                    pass
+    new_symbols = symbols.copy()
+    new_symbols.remove(highest)
+    return highest, new_symbols
+
 
 def DPLL_Satisfiable(
     KB: List[Set[Literal]], 
@@ -98,6 +124,10 @@ def DPLL_Satisfiable(
         :param model: The model to use during the search
         :param heuristic_level: An integer that will be passed in to specify which heuristics to implement 
                 (only for the extension activities).
+                0: No heuristic is used
+                1: The degree heuristic
+                2: Pure symbol and unit clause heuristics
+                3: Most occuring pure symbol
         :param symbol_list: The currently chosen symbols. It should be initialized as empty
         :returns satisfiable: Returns True if the KB is satisfiable, or False otherwise
         :returns Model: A dictionary that assigns a truth value to each literal for the model that satisfies KB.
@@ -110,30 +140,46 @@ def DPLL_Satisfiable(
         if evaluation is not None:
             return evaluation, model, symbol_list
 
-        P, value = find_pure_symbol(symbols, clauses, model)
-        if P: 
-            new_symbols = symbols.copy()
-            new_symbols.remove(P)
-            symbol_list.append(P)
-            return DPLL(clauses, new_symbols, {**model, **{P.pure(): value}}, heuristic_level)
-        P, value = find_unit_clause(clauses, model)
-        if P: 
-            new_symbols = symbols.copy()
-            new_symbols.remove(P)
-            symbol_list.append(P)
-            return DPLL(clauses, new_symbols, {**model, **{P.pure(): value}}, heuristic_level)
+        if heuristic_level == 1:
+            # Degree heuristic - Most common symbol first
+            symbols_lst = list(symbols)
+            P, rest = most_common_symbol(symbols, clauses, model) 
 
-        symbols_lst = list(symbols)
-        P, rest = symbols_lst[0], symbols_lst[1:]
+            symbol_list.append(P.pure())
+            when_true = DPLL(clauses, rest, {**model, **{P.pure(): True}}, heuristic_level)
+            if when_true[0]:
+                return when_true
 
-        symbol_list.append(P)
-        when_true = DPLL(clauses, rest, {**model, **{P.pure(): True}}, heuristic_level)
-        if when_true[0]:
-            return when_true
+            symbol_list.append(P.pure())
+            when_false = DPLL(clauses, rest, {**model, **{P.pure(): False}}, heuristic_level)
+            return when_false
+        elif heuristic_level == 2:
+            P, value = find_pure_symbol(symbols, clauses, model)
+            if P: 
+                new_symbols = symbols.copy()
+                new_symbols.remove(P)
+                symbol_list.append(P.pure())
+                return DPLL(clauses, new_symbols, {**model, **{P.pure(): value}}, heuristic_level)
+            P, value = find_unit_clause(clauses, model)
+            if P: 
+                new_symbols = symbols.copy()
+                new_symbols.remove(P)
+                symbol_list.append(P.pure())
+                return DPLL(clauses, new_symbols, {**model, **{P.pure(): value}}, heuristic_level)
+        elif heuristic_level == 3:
+            pass
+        else:  # heuristic_level assumed to be 0
+            symbols_lst = list(symbols)
+            P, rest = symbols_lst[0], set(symbols_lst[1:])
 
-        symbol_list.append(P)
-        when_false = DPLL(clauses, rest, {**model, **{P.pure(): False}}, heuristic_level)
-        return when_false
+            symbol_list.append(P.pure())
+            when_true = DPLL(clauses, rest, {**model, **{P.pure(): True}}, heuristic_level)
+            if when_true[0]:
+                return when_true
+
+            symbol_list.append(P.pure())
+            when_false = DPLL(clauses, rest, {**model, **{P.pure(): False}}, heuristic_level)
+            return when_false
  
     clauses = KB
     symbols: List[str] = get_symbols(clauses)
