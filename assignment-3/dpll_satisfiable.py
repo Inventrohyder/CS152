@@ -187,7 +187,32 @@ def DPLL_Satisfiable(
             when_false = DPLL(clauses, rest, {**model, **{P.pure(): False}}, heuristic_level)
             return when_false
         elif heuristic_level == 3:
-            pass
+            # Pure symbol heuristic
+            P, value = find_pure_symbol(symbols, clauses, model, True)
+            if P: 
+                new_symbols = symbols.copy()
+                new_symbols.remove(P)
+                symbol_list.append(P.pure())
+                return DPLL(clauses, new_symbols, {**model, **{P.pure(): value}}, heuristic_level)
+            P, value = find_unit_clause(clauses, model, True)
+            if P: 
+                new_symbols = symbols.copy()
+                new_symbols.remove(P)
+                symbol_list.append(P.pure())
+                return DPLL(clauses, new_symbols, {**model, **{P.pure(): value}}, heuristic_level)
+
+            # Degree heuristic - Most common symbol first
+            symbols_lst = list(symbols)
+            P, rest = most_common_symbol(symbols, clauses, model) 
+
+            symbol_list.append(P.pure())
+            when_true = DPLL(clauses, rest, {**model, **{P.pure(): True}}, heuristic_level)
+            if when_true[0]:
+                return when_true
+
+            symbol_list.append(P.pure())
+            when_false = DPLL(clauses, rest, {**model, **{P.pure(): False}}, heuristic_level)
+            return when_false
         else:  # heuristic_level assumed to be 0
             symbols_lst = list(symbols)
             P, rest = symbols_lst[0], set(symbols_lst[1:])
@@ -209,7 +234,8 @@ def DPLL_Satisfiable(
 def find_pure_symbol(
     symbols: Set[Literal], 
     clauses: List[Set[Literal]],
-    model:Dict[Literal, bool]
+    model:Dict[Literal, bool],
+    most_common: bool = False,
     ) -> Tuple[Literal, bool]:
     """
     Finds a pure symbol in the current state of the KB (clauses).
@@ -235,7 +261,12 @@ def find_pure_symbol(
                     symbol_signs[symbol] = literal.sign
                     pure_symbols.add(symbol)
 
-    pure_symbol =  sorted(list(pure_symbols))[0] if len(pure_symbols) > 0 else None
+    if len(pure_symbols) == 0: 
+        pure_symbol = None
+    elif most_common:
+        pure_symbol = most_common_symbol(pure_symbols, clauses, model)[0]
+    else:
+        pure_symbol =  sorted(list(pure_symbols))[0]
 
     if pure_symbol is None:
         return None, None
@@ -245,7 +276,8 @@ def find_pure_symbol(
 
 def find_unit_clause(
     clauses: List[Set[Literal]],
-    model:Dict[Literal, bool]
+    model:Dict[Literal, bool],
+    most_common: bool = False
 ) -> tuple:
 
     current_clauses: List[Set[Literal]] = simplify_clauses(clauses, model)
@@ -256,9 +288,13 @@ def find_unit_clause(
         if len(clause) == 1:
             literal = clause.pop()
             unit_clauses.add(literal)
-            # return literal, literal.sign
     
-    unit_clause =  sorted(list(unit_clauses))[0] if len(unit_clauses) > 0 else None
+    if len(unit_clauses) == 0: 
+        unit_clause = None
+    elif most_common:
+        unit_clause = most_common_symbol(unit_clauses, clauses, model)[0]
+    else:
+        unit_clause =  sorted(list(unit_clauses))[0]
 
     if unit_clause is None:
         return None, None
