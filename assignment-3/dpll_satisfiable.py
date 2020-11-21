@@ -150,79 +150,76 @@ def DPLL_Satisfiable(
             # Degree heuristic - Most common symbol first
             symbols_lst = list(symbols)
             P, rest = most_common_symbol(symbols, clauses, model) 
-
             symbol_list.append(P.pure())
+
             when_true = DPLL(clauses, rest, {**model, **{P.pure(): True}}, heuristic_level)
             if when_true[0]:
                 return when_true
 
-            symbol_list.append(P.pure())
             when_false = DPLL(clauses, rest, {**model, **{P.pure(): False}}, heuristic_level)
             return when_false
         elif heuristic_level == 2:
             # Pure symbol heuristic
             P, value = find_pure_symbol(symbols, clauses, model)
             if P: 
+                symbol_list.append(P.pure())
                 new_symbols = symbols.copy()
                 new_symbols.remove(P)
-                symbol_list.append(P.pure())
                 return DPLL(clauses, new_symbols, {**model, **{P.pure(): value}}, heuristic_level)
             P, value = find_unit_clause(clauses, model)
             if P: 
+                symbol_list.append(P.pure())
                 new_symbols = symbols.copy()
                 new_symbols.remove(P)
-                symbol_list.append(P.pure())
                 return DPLL(clauses, new_symbols, {**model, **{P.pure(): value}}, heuristic_level)
 
             # Degree heuristic - Most common symbol first
             symbols_lst = list(symbols)
             P, rest = most_common_symbol(symbols, clauses, model) 
-
             symbol_list.append(P.pure())
+
             when_true = DPLL(clauses, rest, {**model, **{P.pure(): True}}, heuristic_level)
             if when_true[0]:
                 return when_true
 
-            symbol_list.append(P.pure())
             when_false = DPLL(clauses, rest, {**model, **{P.pure(): False}}, heuristic_level)
             return when_false
         elif heuristic_level == 3:
             # Pure symbol heuristic
             P, value = find_pure_symbol(symbols, clauses, model, True)
             if P: 
+                symbol_list.append(P.pure())
                 new_symbols = symbols.copy()
                 new_symbols.remove(P)
-                symbol_list.append(P.pure())
                 return DPLL(clauses, new_symbols, {**model, **{P.pure(): value}}, heuristic_level)
             P, value = find_unit_clause(clauses, model, True)
             if P: 
+                symbol_list.append(P.pure())
                 new_symbols = symbols.copy()
                 new_symbols.remove(P)
-                symbol_list.append(P.pure())
                 return DPLL(clauses, new_symbols, {**model, **{P.pure(): value}}, heuristic_level)
 
             # Degree heuristic - Most common symbol first
             symbols_lst = list(symbols)
-            P, rest = most_common_symbol(symbols, clauses, model) 
 
+            P, rest = most_common_symbol(symbols, clauses, model) 
             symbol_list.append(P.pure())
+
             when_true = DPLL(clauses, rest, {**model, **{P.pure(): True}}, heuristic_level)
             if when_true[0]:
                 return when_true
 
-            symbol_list.append(P.pure())
             when_false = DPLL(clauses, rest, {**model, **{P.pure(): False}}, heuristic_level)
             return when_false
         else:  # heuristic_level assumed to be 0
             symbols_lst = list(symbols)
             P, rest = symbols_lst[0], set(symbols_lst[1:])
-
             symbol_list.append(P.pure())
+
             when_true = DPLL(clauses, rest, {**model, **{P.pure(): True}}, heuristic_level)
             if when_true[0]:
                 return when_true
 
-            symbol_list.append(P.pure())
             when_false = DPLL(clauses, rest, {**model, **{P.pure(): False}}, heuristic_level)
             return when_false
  
