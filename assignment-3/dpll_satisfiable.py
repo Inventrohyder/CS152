@@ -81,44 +81,64 @@ def DPLL_Satisfiable(
         Model: A dictionary that assigns a truth value to each literal for the model that satisfies KB.
             For example, a model might look like {A: True, B: False}
     '''
+    def DPLL(
+        clauses: List[Set[Literal]], 
+        symbols: Set[Literal], 
+        model:Dict[Literal, bool],
+        heuristic_level: int = 0,
+        symbol_list: List[Literal] = []
+        ) -> Tuple[bool, Dict[Literal, bool], List[Literal]]:
+        """
+        Takes in a KB and recursively tries to figure out whether the KB is satisfiable, 
+        and the model that makes it so.
+            
+        :param clauses: A knowledge base of clauses (CNF) consisting of a list of sets of literals.  A KB might look like
+                [{A,B},{-A,C,D}]
+        :param symbols: The symbols present in the KB
+        :param model: The model to use during the search
+        :param heuristic_level: An integer that will be passed in to specify which heuristics to implement 
+                (only for the extension activities).
+        :param symbol_list: The currently chosen symbols. It should be initialized as empty
+        :returns satisfiable: Returns True if the KB is satisfiable, or False otherwise
+        :returns Model: A dictionary that assigns a truth value to each literal for the model that satisfies KB.
+                For example, a model might look like {A: True, B: False}
+        :returns symbol_list: symbols chosen for assignment
+        """
+
+        evaluation: bool = evaluate_clauses(clauses, model)
+
+        if evaluation is not None:
+            return evaluation, model, symbol_list
+
+        P, value = find_pure_symbol(symbols, clauses, model)
+        if P: 
+            new_symbols = symbols.copy()
+            new_symbols.remove(P)
+            symbol_list.append(P)
+            return DPLL(clauses, new_symbols, {**model, **{P.pure(): value}}, heuristic_level)
+        P, value = find_unit_clause(clauses, model)
+        if P: 
+            new_symbols = symbols.copy()
+            new_symbols.remove(P)
+            symbol_list.append(P)
+            return DPLL(clauses, new_symbols, {**model, **{P.pure(): value}}, heuristic_level)
+
+        symbols_lst = list(symbols)
+        P, rest = symbols_lst[0], symbols_lst[1:]
+
+        symbol_list.append(P)
+        when_true = DPLL(clauses, rest, {**model, **{P.pure(): True}}, heuristic_level)
+        if when_true[0]:
+            return when_true
+
+        symbol_list.append(P)
+        when_false = DPLL(clauses, rest, {**model, **{P.pure(): False}}, heuristic_level)
+        return when_false
+ 
     clauses = KB
     symbols: List[str] = get_symbols(clauses)
     return DPLL(clauses, symbols, {}, heuristic_level)
 
-
-def DPLL(
-    clauses: List[Set[Literal]], 
-    symbols: Set[Literal], 
-    model:Dict[Literal, bool],
-    heuristic_level: int = 0
-    ) -> Tuple[bool, Dict[Literal, bool], List[Literal]]:
-
-    evaluation: bool = evaluate_clauses(clauses, model)
-
-    if evaluation is not None:
-        return evaluation, model, []
-
-    P, value = find_pure_symbol(symbols, clauses, model)
-    if P: 
-        new_symbols = symbols.copy()
-        new_symbols.remove(P)
-        return DPLL(clauses, new_symbols, {**model, **{P.pure(): value}}, heuristic_level)
-    P, value = find_unit_clause(clauses, model)
-    if P: 
-        new_symbols = symbols.copy()
-        new_symbols.remove(P)
-        return DPLL(clauses, new_symbols, {**model, **{P.pure(): value}}, heuristic_level)
-
-    symbols_lst = list(symbols)
-    P, rest = symbols_lst[0], symbols_lst[1:]
-
-    when_true = DPLL(clauses, rest, {**model, **{P.pure(): True}}, heuristic_level)
-    if when_true[0]:
-        return when_true
-
-    when_false = DPLL(clauses, rest, {**model, **{P.pure(): False}}, heuristic_level)
-    return when_false
- 
 
 def find_pure_symbol(
     symbols: Set[Literal], 
