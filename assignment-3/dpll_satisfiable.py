@@ -73,20 +73,26 @@ def most_common_symbol(
 
     current_clauses: List[Set[Literal]] = simplify_clauses(clauses, model)
 
+    def count_symbol(symbol: Literal) -> int:
+        count = 0
+        for clause in current_clauses:
+            if symbol in clause:
+                count += 1
+        return count
+
     counts = {}
     highest: Literal = None
-    for clause in current_clauses:
-        for literal in clause:
-            counts[literal] = counts.get(literal, 0)
-            if highest is None:
-                highest = literal
-            else:
-                if counts[literal] > counts[highest]:
-                    highest = literal
-                elif counts[literal] == counts[highest]:
-                    highest = literal if literal.name < highest.name else highest
-                else:
-                    pass
+    for symbol in symbols:
+        count: int = count_symbol(symbol)
+        counts[symbol] = count
+        if highest is None:
+            highest = symbol
+        else:
+            if count > counts[highest]:
+                highest = symbol
+            elif count == counts[highest]:
+                highest = symbol if symbol < highest else highest
+            
     new_symbols = symbols.copy()
     new_symbols.remove(highest)
     return highest, new_symbols
