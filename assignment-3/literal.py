@@ -17,6 +17,9 @@ class Literal:
         l.sign = not self.sign
         return l
 
+    def __lt__(self, other) -> bool:
+        return self.name < other.name
+
     def __repr__(self) -> str:
         sign = "" if self.sign else "-"
         return f"{sign}{self.name}"

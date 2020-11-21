@@ -154,6 +154,7 @@ def DPLL_Satisfiable(
             when_false = DPLL(clauses, rest, {**model, **{P.pure(): False}}, heuristic_level)
             return when_false
         elif heuristic_level == 2:
+            # Pure symbol heuristic
             P, value = find_pure_symbol(symbols, clauses, model)
             if P: 
                 new_symbols = symbols.copy()
@@ -215,7 +216,7 @@ def find_pure_symbol(
                     symbol_signs[symbol] = literal.sign
                     pure_symbols.add(symbol)
 
-    pure_symbol =  list(pure_symbols)[0] if len(pure_symbols) > 0 else None
+    pure_symbol =  list(sorted(pure_symbols))[0] if len(pure_symbols) > 0 else None
 
     if pure_symbol is None:
         return None, None
