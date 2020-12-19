@@ -66,16 +66,17 @@ def Debug_Mode():
             return False
         else:
             print("Invalid Input: Response must be yes or no. (y/n)")
-def Rerun_Random_World():
+def Rerun_Random_World(score=0):
     while True:
         print("---------------")
-        response = input("Run another world? (y/n)\n")
-        if response.lower() == "y" or response.lower() == "yes":
+
+        if score < 900:
+            print("Running another random world")
+            print("-----------------------------")
+            response = input("Run another world? (y/n)\n")
             return True
-        elif response.lower() == "n" or response.lower() == "no":
-            return False
         else:
-            print("Invalid Input: Response must be yes or no. (y/n)")
+            return False
                
 def Check_Directories():
     try:
@@ -116,7 +117,7 @@ def main ( ):
             world = World(True)
             score = world.run()
             print ("Your agent scored: " + str(score))
-            if not Rerun_Random_World():
+            if not Rerun_Random_World(score):
                 return
     while True:
         sd = Check_Directories()
