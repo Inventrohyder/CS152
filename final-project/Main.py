@@ -279,4 +279,5 @@ def main ( ):
     except Exception:
         print ( "[ERROR] Failure to open file." )
 
-main()
+if __name__ == '__main__':
+    main()
