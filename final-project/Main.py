@@ -73,7 +73,6 @@ def Rerun_Random_World(score=0):
         if score < 900:
             print("Running another random world")
             print("-----------------------------")
-            response = input("Run another world? (y/n)\n")
             return True
         else:
             return False
